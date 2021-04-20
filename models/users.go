@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -34,6 +35,14 @@ func (us *UserService) ByEmail(email string) (*User, error) {
 }
 
 func (us *UserService) Create(u *User) error {
+	hb, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	u.PasswordHash = string(hb)
+	u.Password = ""
+
 	return us.db.Create(u).Error
 }
 
