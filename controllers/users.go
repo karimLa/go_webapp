@@ -36,7 +36,7 @@ type SignupForm struct {
 	Password string `schema:"password,required"`
 }
 
-// Create is used to process the signup form whem a user
+// Signup is used to process the signup form whem a user
 // submits it. This is used to create a new user account.
 //
 // POST /signup
@@ -77,5 +77,21 @@ func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
 	var form LoginForm
 	utils.Must(parseForm(r, &form))
 
-	fmt.Fprintln(w, form)
+	user, err := u.us.Authenticate(form.Email, form.Password)
+	if err != nil {
+		if err == models.ErrNotFound {
+			fmt.Fprintln(w, "Invalid email address.")
+			return
+		}
+
+		if err == models.ErrInvalidPassword {
+			fmt.Fprintln(w, "Invalid password.")
+			return
+		}
+
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Fprintln(w, user)
 }
