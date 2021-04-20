@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"github.com/karimla/webapp/models"
 	"github.com/karimla/webapp/utils"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -17,11 +16,5 @@ func InitDB() *gorm.DB {
 		panic(err)
 	}
 
-	migrate(db)
-
 	return db
-}
-
-func migrate(db *gorm.DB) {
-	utils.Must(db.AutoMigrate(&models.User{}))
 }

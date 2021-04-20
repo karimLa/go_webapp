@@ -18,8 +18,10 @@ func main() {
 	wg := &sync.WaitGroup{}
 	l := lib.InitLog()
 	db := lib.InitDB()
-	us := models.NewUserService(db)
 
+	utils.Must(db.AutoMigrate(&models.User{}))
+
+	us := models.NewUserService(db)
 	staticC := controllers.NewStatic(wg)
 	usersC := controllers.NewUsers(wg, us)
 

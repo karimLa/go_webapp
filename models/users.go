@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 
+	"github.com/karimla/webapp/lib"
 	"github.com/karimla/webapp/utils"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -15,11 +16,13 @@ var (
 )
 
 type UserService struct {
-	db *gorm.DB
+	db   *gorm.DB
+	hmac lib.HMAC
 }
 
 func NewUserService(db *gorm.DB) *UserService {
-	return &UserService{db: db}
+	h := lib.NewHMAC(utils.GetSecret())
+	return &UserService{db: db, hmac: h}
 }
 
 func (us *UserService) ByID(id uint) (*User, error) {
@@ -32,6 +35,14 @@ func (us *UserService) ByID(id uint) (*User, error) {
 func (us *UserService) ByEmail(email string) (*User, error) {
 	var u User
 	db := us.db.Where("email = ?", email)
+	err := first(db, &u)
+	return &u, err
+}
+
+func (us *UserService) ByRemember(token string) (*User, error) {
+	var u User
+	hashedToken := us.hmac.Hash(token)
+	db := us.db.Where("remember_hash = ?", hashedToken)
 	err := first(db, &u)
 	return &u, err
 }
@@ -68,10 +79,23 @@ func (us *UserService) Create(u *User) error {
 	u.PasswordHash = string(hb)
 	u.Password = ""
 
+	if u.Remember == "" {
+		token, err := lib.RememeberToken()
+		if err != nil {
+			return err
+		}
+		u.RememberHash = token
+	} else {
+		u.RememberHash = us.hmac.Hash(u.Remember)
+	}
+
 	return us.db.Create(u).Error
 }
 
 func (us *UserService) Update(u *User) error {
+	if u.Remember != "" {
+		u.RememberHash = us.hmac.Hash(u.Remember)
+	}
 	return us.db.Save(u).Error
 }
 
@@ -102,4 +126,6 @@ type User struct {
 	Email        string `gorm:"not null;unique;index"`
 	Password     string `gorm:"-"`
 	PasswordHash string `gorm:"not null"`
+	Remember     string `gorm:"-"`
+	RememberHash string `gorm:"not null;unique;index"`
 }

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/karimla/webapp/lib"
 	"github.com/karimla/webapp/models"
 	"github.com/karimla/webapp/utils"
 	"github.com/karimla/webapp/views"
@@ -58,7 +59,11 @@ func (u *Users) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintln(w, user)
+	if err := u.signIn(w, &user); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 type LoginForm struct {
@@ -93,5 +98,32 @@ func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintln(w, user)
+	if err = u.signIn(w, user); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/", http.StatusFound)
+}
+
+func (u *Users) signIn(w http.ResponseWriter, user *models.User) error {
+	if user.Remember == "" {
+		token, err := lib.RememeberToken()
+		if err != nil {
+			return err
+		}
+		user.Remember = token
+		err = u.us.Update(user)
+		if err != nil {
+			return err
+		}
+	}
+
+	c := http.Cookie{
+		Name:     "remember_token",
+		Value:    user.Remember,
+		HttpOnly: true,
+	}
+	http.SetCookie(w, &c)
+
+	return nil
 }

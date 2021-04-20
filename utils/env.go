@@ -9,7 +9,8 @@ import (
 var (
 	bindAddress = env.String("BIND_ADDRESS", false, "", "Bind address for the server")
 	bindPort    = env.String("BIND_PORT", false, "3000", "Bind port for the server")
-	pepper      = env.String("PEPPER", false, "+xylGoeVwEuZB7eUFZzOoElyXpweg8pRrFPxWqJV", "secret pepper for the application.")
+	pepper      = env.String("PEPPER", false, "+xylGoeVwEuZB7eUFZzOoElyXpweg8pRrFPxWqJV", "pepper used for password encryption")
+	secret      = env.String("SECRET", false, "pDzM28sbPEuKWl4QWtEAUIAJhpxxpySTxJx96Gml", "secret used for remember tokens")
 	dbHost      = env.String("DB_HOST", false, "localhost", "database host, i.e. localhost")
 	dbPort      = env.String("DB_PORT", false, "5432", "database port, i.e. 5432")
 	dbName      = env.String("DB_NAME", false, "dev_db", "database name")
@@ -23,6 +24,10 @@ func GetBindAdress() string {
 
 func GetPepper() string {
 	return *pepper
+}
+
+func GetSecret() string {
+	return *secret
 }
 
 func GetDB() string {
