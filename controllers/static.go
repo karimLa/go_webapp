@@ -8,12 +8,12 @@ import (
 
 func NewStatic(wg *sync.WaitGroup) *Static {
 	return &Static{
-		Home:    views.NewView(wg, "bootstrap", "static/index"),
-		Contact: views.NewView(wg, "bootstrap", "static/contact"),
+		HomeView:    views.NewView(wg, "bootstrap", "static/index"),
+		ContactView: views.NewView(wg, "bootstrap", "static/contact"),
 	}
 }
 
 type Static struct {
-	Home    *views.View
-	Contact *views.View
+	HomeView    *views.View
+	ContactView *views.View
 }

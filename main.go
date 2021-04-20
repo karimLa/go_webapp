@@ -24,10 +24,12 @@ func main() {
 	usersC := controllers.NewUsers(wg, us)
 
 	r := mux.NewRouter()
-	r.Handle("/", staticC.Home).Methods("GET")
-	r.Handle("/contact", staticC.Contact).Methods("GET")
-	r.HandleFunc("/signup", usersC.New).Methods("GET")
-	r.HandleFunc("/signup", usersC.Create).Methods("POST")
+	r.Handle("/", staticC.HomeView).Methods("GET")
+	r.Handle("/contact", staticC.ContactView).Methods("GET")
+	r.Handle("/signup", usersC.SignupView).Methods("GET")
+	r.Handle("/login", usersC.LoginView).Methods("GET")
+	r.HandleFunc("/signup", usersC.Signup).Methods("POST")
+	r.HandleFunc("/login", usersC.Login).Methods("POST")
 
 	s := lib.NewServer(l, wg, r)
 

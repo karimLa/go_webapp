@@ -16,24 +16,18 @@ import (
 // initial setup.
 func NewUsers(wg *sync.WaitGroup, us *models.UserService) *Users {
 	return &Users{
-		newView: views.NewView(wg, "bootstrap", "users/new"),
-		us:      us,
-		wg:      wg,
+		SignupView: views.NewView(wg, "bootstrap", "users/new"),
+		LoginView:  views.NewView(wg, "bootstrap", "users/login"),
+		us:         us,
+		wg:         wg,
 	}
 }
 
 type Users struct {
-	newView *views.View
-	us      *models.UserService
-	wg      *sync.WaitGroup
-}
-
-// New is used to render the form where a user can
-// create a new user account
-//
-// GET /signup
-func (u *Users) New(w http.ResponseWriter, r *http.Request) {
-	utils.Must(u.newView.Render(w, nil))
+	SignupView *views.View
+	LoginView  *views.View
+	us         *models.UserService
+	wg         *sync.WaitGroup
 }
 
 type SignupForm struct {
@@ -46,7 +40,7 @@ type SignupForm struct {
 // submits it. This is used to create a new user account.
 //
 // POST /signup
-func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
+func (u *Users) Signup(w http.ResponseWriter, r *http.Request) {
 	u.wg.Add(1)
 	defer u.wg.Done()
 
@@ -65,4 +59,23 @@ func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprintln(w, user)
+}
+
+type LoginForm struct {
+	Email    string `schema:"email,required"`
+	Password string `schema:"password,required"`
+}
+
+// Login is used to verify the provided email address and
+// password and then log the user in if they are correct.
+//
+// POST /login
+func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
+	u.wg.Add(1)
+	defer u.wg.Done()
+
+	var form LoginForm
+	utils.Must(parseForm(r, &form))
+
+	fmt.Fprintln(w, form)
 }
