@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 
+	"github.com/karimla/webapp/utils"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -35,7 +36,8 @@ func (us *UserService) ByEmail(email string) (*User, error) {
 }
 
 func (us *UserService) Create(u *User) error {
-	hb, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+	pwBytes := []byte(u.Password + utils.GetPepper())
+	hb, err := bcrypt.GenerateFromPassword(pwBytes, bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}

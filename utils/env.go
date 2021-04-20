@@ -9,6 +9,7 @@ import (
 var (
 	bindAddress = env.String("BIND_ADDRESS", false, "", "Bind address for the server")
 	bindPort    = env.String("BIND_PORT", false, "3000", "Bind port for the server")
+	pepper      = env.String("PEPPER", false, "+xylGoeVwEuZB7eUFZzOoElyXpweg8pRrFPxWqJV", "secret pepper for the application.")
 	dbHost      = env.String("DB_HOST", false, "localhost", "database host, i.e. localhost")
 	dbPort      = env.String("DB_PORT", false, "5432", "database port, i.e. 5432")
 	dbName      = env.String("DB_NAME", false, "dev_db", "database name")
@@ -18,6 +19,10 @@ var (
 
 func GetBindAdress() string {
 	return fmt.Sprintf("%s:%s", *bindAddress, *bindPort)
+}
+
+func GetPepper() string {
+	return *pepper
 }
 
 func GetDB() string {
