@@ -1,0 +1,17 @@
+version: '3.1'
+
+services:
+  db:
+    container_name: webapp_db
+    image: postgres:12.3-alpine
+    environment:
+      POSTGRES_PASSWORD: sora_password
+      POSTGRES_USER: sora
+      POSTGRES_DB: dev_db
+    volumes:
+      - webapp_db:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+
+volumes:
+  webapp_db:

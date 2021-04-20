@@ -1,0 +1,86 @@
+package views
+
+import (
+	"net/http"
+	"path/filepath"
+	"sync"
+	"text/template"
+
+	"github.com/karimla/webapp/utils"
+)
+
+var (
+	LayoutDir   string = "views/layouts/"
+	TemplateDir string = "views/"
+	TemplateExt string = ".html"
+)
+
+func NewView(wg *sync.WaitGroup, layout string, files ...string) *View {
+	addTemplatePath(files)
+	addTemplateExt(files)
+	layouts := getLayoutFileNames()
+	files = append(files, layouts...)
+
+	t, err := template.ParseFiles(files...)
+	if err != nil {
+		panic(err)
+	}
+
+	return &View{
+		Template: t,
+		Layout:   layout,
+		wg:       wg,
+	}
+}
+
+type View struct {
+	Template *template.Template
+	Layout   string
+	wg       *sync.WaitGroup
+}
+
+func (v *View) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// Wait for job to finish before shuting down
+	v.wg.Add(1)
+	defer v.wg.Done()
+
+	utils.Must(v.Render(w, nil))
+}
+
+func (v *View) Render(w http.ResponseWriter, data interface{}) error {
+	w.Header().Set("Content-Type", "text/html")
+	return v.Template.ExecuteTemplate(w, v.Layout, data)
+}
+
+func getLayoutFileNames() []string {
+	files, err := filepath.Glob(LayoutDir + "*" + TemplateExt)
+	if err != nil {
+		panic(err)
+	}
+
+	return files
+}
+
+// addTemplatePath takes in a slice of strings
+// representing file paths for templates, and it prepends
+// the TemplateDir directory to each string in the slice
+//
+// Eg the input {"home"} would result in the ouput
+// {"views/home"} if TemplateDir == "views/"
+func addTemplatePath(files []string) {
+	for i, f := range files {
+		files[i] = TemplateDir + f
+	}
+}
+
+// addTemplateExt takes in a slice of strings
+// representing file paths for templates, and it prepends
+// the TemplateExt extension to each string in the slice
+//
+// Eg the input {"home"} would result in the ouput
+// {"home.html"} if TemplateExt == ".html"
+func addTemplateExt(files []string) {
+	for i, f := range files {
+		files[i] = f + TemplateExt
+	}
+}
