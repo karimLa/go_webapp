@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"regexp"
 	"strings"
 
 	"github.com/karimla/webapp/lib"
@@ -15,6 +16,9 @@ var (
 	ErrInvalidID       = errors.New("models: ID provided was invalid")
 	ErrInvalidPassword = errors.New("models: incorrect password provided")
 	ErrNotImplemented  = errors.New("not implemented")
+	ErrEmailRequired   = errors.New("email address is required")
+	ErrEmailInvalid    = errors.New("email address is not valid")
+	ErrEmailTaken      = errors.New("email address is already taken")
 )
 
 // User represents the user model stored in our database
@@ -128,14 +132,15 @@ func runUserValFuncs(user *User, fns ...userValidatorFunc) error {
 
 type userValidator struct {
 	UserDB
-	hmac lib.HMAC
+	hmac       lib.HMAC
+	emailRegex *regexp.Regexp
 }
 
-func newUserValidator(ug UserDB) *userValidator {
-	h := lib.NewHMAC(utils.GetSecret())
+func newUserValidator(udb UserDB) *userValidator {
 	return &userValidator{
-		hmac:   h,
-		UserDB: ug,
+		UserDB:     udb,
+		hmac:       lib.NewHMAC(utils.GetSecret()),
+		emailRegex: regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,16}$`),
 	}
 }
 
@@ -166,7 +171,15 @@ func (uv *userValidator) ByRemember(token string) (*User, error) {
 // Create will hash user password and generate a remember token
 // and then call Create on the subsequent UserDB layer.
 func (uv *userValidator) Create(u *User) error {
-	fns := []userValidatorFunc{uv.normalizeEmail, uv.bcryptPassword, uv.defaultRemember, uv.hmacRemember}
+	fns := []userValidatorFunc{
+		uv.normalizeEmail,
+		uv.requireEmail,
+		uv.isEmail,
+		uv.isEmailAvail,
+		uv.bcryptPassword,
+		uv.defaultRemember,
+		uv.hmacRemember,
+	}
 	if err := runUserValFuncs(u, fns...); err != nil {
 		return err
 	}
@@ -177,7 +190,15 @@ func (uv *userValidator) Create(u *User) error {
 // Update generates a new remember token if necessary
 // and then call Update on the subsequent UserDB layer.
 func (uv *userValidator) Update(u *User) error {
-	if err := runUserValFuncs(u, uv.normalizeEmail, uv.bcryptPassword, uv.hmacRemember); err != nil {
+	fns := []userValidatorFunc{
+		uv.normalizeEmail,
+		uv.requireEmail,
+		uv.isEmail,
+		uv.isEmailAvail,
+		uv.bcryptPassword,
+		uv.hmacRemember,
+	}
+	if err := runUserValFuncs(u, fns...); err != nil {
 		return err
 	}
 
@@ -252,6 +273,43 @@ func (uv *userValidator) isGreaterThan(n uint) userValidatorFunc {
 
 func (uv *userValidator) normalizeEmail(u *User) error {
 	u.Email = strings.TrimSpace(strings.ToLower(u.Email))
+	return nil
+}
+
+func (uv *userValidator) requireEmail(u *User) error {
+	if u.Email == "" {
+		return ErrEmailRequired
+	}
+
+	return nil
+}
+
+func (uv *userValidator) isEmail(u *User) error {
+	if !uv.emailRegex.MatchString(u.Email) {
+		return ErrEmailInvalid
+	}
+	return nil
+}
+
+func (uv *userValidator) isEmailAvail(u *User) error {
+	existing, err := uv.ByEmail(u.Email)
+
+	if err == ErrNotFound {
+		// Email address is not taken
+		return nil
+	}
+
+	if err != nil {
+		return err
+	}
+
+	// We found a user w/ this email address...
+	// If the found user has the same ID as this user, it is
+	// an update and this is the same user.
+	if u.ID != existing.ID {
+		return ErrEmailTaken
+	}
+
 	return nil
 }
 
