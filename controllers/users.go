@@ -7,7 +7,6 @@ import (
 
 	"github.com/karimla/webapp/lib"
 	"github.com/karimla/webapp/models"
-	"github.com/karimla/webapp/utils"
 	"github.com/karimla/webapp/views"
 )
 
@@ -46,7 +45,7 @@ func (u *Users) Signup(w http.ResponseWriter, r *http.Request) {
 	defer u.wg.Done()
 
 	var form SignupForm
-	utils.Must(parseForm(r, &form))
+	parseForm(r, &form)
 
 	user := models.User{
 		Name:     form.Name,
@@ -80,7 +79,7 @@ func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
 	defer u.wg.Done()
 
 	var form LoginForm
-	utils.Must(parseForm(r, &form))
+	parseForm(r, &form)
 
 	user, err := u.us.Authenticate(form.Email, form.Password)
 	if err != nil {
@@ -89,7 +88,7 @@ func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err == models.ErrInvalidPassword {
+		if err == models.ErrPasswordInccorect {
 			fmt.Fprintln(w, "Invalid password.")
 			return
 		}
