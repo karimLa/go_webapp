@@ -174,9 +174,12 @@ func (uv *userValidator) Update(u *User) error {
 // the provided id is valid. Otherwise it will return
 // a ErrInvalidID.
 func (uv *userValidator) Delete(id uint) error {
-	if id == 0 {
-		return ErrInvalidID
+	u := User{Model: gorm.Model{ID: id}}
+
+	if err := runUserValFuncs(&u, uv.isGreaterThan(0)); err != nil {
+		return err
 	}
+
 	return uv.UserDB.Delete(id)
 }
 
@@ -221,6 +224,16 @@ func (uv *userValidator) hmacRemember(u *User) error {
 
 	u.RememberHash = uv.hmac.Hash(u.Remember)
 	return nil
+}
+
+func (uv *userValidator) isGreaterThan(n uint) userValidatorFunc {
+	return func(u *User) error {
+		if u.ID <= n {
+			return ErrInvalidID
+		}
+
+		return nil
+	}
 }
 
 type userGorm struct {
