@@ -153,15 +153,7 @@ func (uv *userValidator) ByRemember(token string) (*User, error) {
 // Create will hash user password and generate a remember token
 // and then call Create on the subsequent UserDB layer.
 func (uv *userValidator) Create(u *User) error {
-	if u.Remember == "" {
-		token, err := lib.RememberToken()
-		if err != nil {
-			return err
-		}
-		u.RememberHash = token
-	}
-
-	if err := runUserValFuncs(u, uv.bcryptPassword, uv.hmacRemember); err != nil {
+	if err := runUserValFuncs(u, uv.bcryptPassword, uv.defaultRemember, uv.hmacRemember); err != nil {
 		return err
 	}
 
@@ -204,6 +196,20 @@ func (uv *userValidator) bcryptPassword(u *User) error {
 
 	u.PasswordHash = string(hb)
 	u.Password = ""
+
+	return nil
+}
+
+func (uv *userValidator) defaultRemember(u *User) error {
+	if u.Remember != "" {
+		return nil
+	}
+
+	token, err := lib.RememberToken()
+	if err != nil {
+		return err
+	}
+	u.RememberHash = token
 
 	return nil
 }
