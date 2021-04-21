@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/karimla/webapp/lib"
 	"github.com/karimla/webapp/utils"
@@ -138,6 +139,18 @@ func newUserValidator(ug UserDB) *userValidator {
 	}
 }
 
+// ByEmail will normalize the provided email and then call
+// ByEmail on the subsequent UserDB layer.
+func (uv *userValidator) ByEmail(email string) (*User, error) {
+	u := User{Email: email}
+
+	if err := runUserValFuncs(&u, uv.normalizeEmail); err != nil {
+		return nil, err
+	}
+
+	return uv.UserDB.ByEmail(u.Email)
+}
+
 // ByRemember will hash the remember token and then call
 // ByRemember on the subsequent UserDB layer.
 func (uv *userValidator) ByRemember(token string) (*User, error) {
@@ -153,7 +166,8 @@ func (uv *userValidator) ByRemember(token string) (*User, error) {
 // Create will hash user password and generate a remember token
 // and then call Create on the subsequent UserDB layer.
 func (uv *userValidator) Create(u *User) error {
-	if err := runUserValFuncs(u, uv.bcryptPassword, uv.defaultRemember, uv.hmacRemember); err != nil {
+	fns := []userValidatorFunc{uv.normalizeEmail, uv.bcryptPassword, uv.defaultRemember, uv.hmacRemember}
+	if err := runUserValFuncs(u, fns...); err != nil {
 		return err
 	}
 
@@ -163,7 +177,7 @@ func (uv *userValidator) Create(u *User) error {
 // Update generates a new remember token if necessary
 // and then call Update on the subsequent UserDB layer.
 func (uv *userValidator) Update(u *User) error {
-	if err := runUserValFuncs(u, uv.bcryptPassword, uv.hmacRemember); err != nil {
+	if err := runUserValFuncs(u, uv.normalizeEmail, uv.bcryptPassword, uv.hmacRemember); err != nil {
 		return err
 	}
 
@@ -234,6 +248,11 @@ func (uv *userValidator) isGreaterThan(n uint) userValidatorFunc {
 
 		return nil
 	}
+}
+
+func (uv *userValidator) normalizeEmail(u *User) error {
+	u.Email = strings.TrimSpace(strings.ToLower(u.Email))
+	return nil
 }
 
 type userGorm struct {
