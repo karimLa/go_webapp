@@ -21,6 +21,8 @@ var (
 	ErrPasswordInccorect = errors.New("models: incorrect password provided")
 	ErrPasswordRequired  = errors.New("models: password is required")
 	ErrPasswordTooShort  = errors.New("models: password must be at least 8 characters long")
+	ErrRememberTooShort  = errors.New("models: remember token is too short")
+	ErrRememberRequired  = errors.New("models: remember hash is required")
 )
 
 // User represents the user model stored in our database
@@ -184,6 +186,8 @@ func (uv *userValidator) Create(u *User) error {
 		uv.passwordHashRequired,
 		uv.rememberDefault,
 		uv.rememberHmac,
+		uv.rememberMinBytes,
+		uv.rememberHashRequired,
 	}
 	if err := runUserValFuncs(u, fns...); err != nil {
 		return err
@@ -204,6 +208,8 @@ func (uv *userValidator) Update(u *User) error {
 		uv.passwordBcrypt,
 		uv.passwordHashRequired,
 		uv.rememberHmac,
+		uv.rememberMinBytes,
+		uv.rememberHashRequired,
 	}
 	if err := runUserValFuncs(u, fns...); err != nil {
 		return err
@@ -293,6 +299,31 @@ func (uv *userValidator) rememberHmac(u *User) error {
 	}
 
 	u.RememberHash = uv.hmac.Hash(u.Remember)
+	return nil
+}
+
+func (uv *userValidator) rememberMinBytes(u *User) error {
+	if u.Remember == "" {
+		return nil
+	}
+
+	n, err := lib.NBytes(u.Remember)
+	if err != nil {
+		return err
+	}
+
+	if n < 32 {
+		return ErrRememberTooShort
+	}
+
+	return nil
+}
+
+func (uv *userValidator) rememberHashRequired(u *User) error {
+	if u.RememberHash == "" {
+		return ErrRememberRequired
+	}
+
 	return nil
 }
 
