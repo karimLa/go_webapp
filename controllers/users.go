@@ -107,7 +107,7 @@ func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
 
 func (u *Users) signIn(w http.ResponseWriter, user *models.User) error {
 	if user.Remember == "" {
-		token, err := lib.RememeberToken()
+		token, err := lib.RememberToken()
 		if err != nil {
 			return err
 		}

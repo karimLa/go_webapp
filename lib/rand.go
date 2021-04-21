@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 )
 
-const RememeberTokenBytes = 32
+const RememberTokenBytes = 32
 
 // Bytes will help us generate n random bytes, or will
 // return an error if there was one. This uses the crypto/rand
@@ -31,8 +31,8 @@ func Base64FromBytes(nBytes int) (string, error) {
 	return base64.URLEncoding.EncodeToString(b), nil
 }
 
-// RememeberToken is a helper function designed to generate
+// RememberToken is a helper function designed to generate
 // remember tokens of a predetermined byte size.
-func RememeberToken() (string, error) {
-	return Base64FromBytes(RememeberTokenBytes)
+func RememberToken() (string, error) {
+	return Base64FromBytes(RememberTokenBytes)
 }
