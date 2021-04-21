@@ -7,7 +7,7 @@ import (
 	"github.com/karimla/webapp/models"
 )
 
-func testingUserService() *models.UserService {
+func testingUserService() models.UserService {
 	db := lib.InitDB()
 
 	us := models.NewUserService(db)

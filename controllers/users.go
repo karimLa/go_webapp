@@ -15,7 +15,7 @@ import (
 // This function will panic if the templates are not
 // parsed correctly, and should only be used during
 // initial setup.
-func NewUsers(wg *sync.WaitGroup, us *models.UserService) *Users {
+func NewUsers(wg *sync.WaitGroup, us models.UserService) *Users {
 	return &Users{
 		SignupView: views.NewView(wg, "bootstrap", "users/new"),
 		LoginView:  views.NewView(wg, "bootstrap", "users/login"),
@@ -27,7 +27,7 @@ func NewUsers(wg *sync.WaitGroup, us *models.UserService) *Users {
 type Users struct {
 	SignupView *views.View
 	LoginView  *views.View
-	us         *models.UserService
+	us         models.UserService
 	wg         *sync.WaitGroup
 }
 
