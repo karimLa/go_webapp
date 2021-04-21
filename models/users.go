@@ -141,25 +141,28 @@ func newUserValidator(ug UserDB) *userValidator {
 // ByRemember will hash the remember token and then call
 // ByRemember on the subsequent UserDB layer.
 func (uv *userValidator) ByRemember(token string) (*User, error) {
-	rememberHash := uv.hmac.Hash(token)
-	return uv.UserDB.ByRemember(rememberHash)
+	u := User{Remember: token}
+
+	if err := runUserValFuncs(&u, uv.hmacRemember); err != nil {
+		return nil, err
+	}
+
+	return uv.UserDB.ByRemember(u.RememberHash)
 }
 
 // Create will hash user password and generate a remember token
 // and then call Create on the subsequent UserDB layer.
 func (uv *userValidator) Create(u *User) error {
-	if err := runUserValFuncs(u, uv.bcryptPassword); err != nil {
-		return err
-	}
-
 	if u.Remember == "" {
 		token, err := lib.RememberToken()
 		if err != nil {
 			return err
 		}
 		u.RememberHash = token
-	} else {
-		u.RememberHash = uv.hmac.Hash(u.Remember)
+	}
+
+	if err := runUserValFuncs(u, uv.bcryptPassword, uv.hmacRemember); err != nil {
+		return err
 	}
 
 	return uv.UserDB.Create(u)
@@ -168,13 +171,10 @@ func (uv *userValidator) Create(u *User) error {
 // Update generates a new remember token if necessary
 // and then call Update on the subsequent UserDB layer.
 func (uv *userValidator) Update(u *User) error {
-	if err := runUserValFuncs(u, uv.bcryptPassword); err != nil {
+	if err := runUserValFuncs(u, uv.bcryptPassword, uv.hmacRemember); err != nil {
 		return err
 	}
 
-	if u.Remember != "" {
-		u.RememberHash = uv.hmac.Hash(u.Remember)
-	}
 	return uv.UserDB.Update(u)
 }
 
@@ -192,17 +192,28 @@ func (uv *userValidator) Delete(id uint) error {
 // predefined pepper and bcrypt if the Password field
 // if not empty string
 func (uv *userValidator) bcryptPassword(u *User) error {
-	if u.Password != "" {
-		pwBytes := []byte(u.Password + utils.GetPepper())
-		hb, err := bcrypt.GenerateFromPassword(pwBytes, bcrypt.DefaultCost)
-		if err != nil {
-			return err
-		}
-
-		u.PasswordHash = string(hb)
-		u.Password = ""
+	if u.Password == "" {
+		return nil
 	}
 
+	pwBytes := []byte(u.Password + utils.GetPepper())
+	hb, err := bcrypt.GenerateFromPassword(pwBytes, bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	u.PasswordHash = string(hb)
+	u.Password = ""
+
+	return nil
+}
+
+func (uv *userValidator) hmacRemember(u *User) error {
+	if u.Remember == "" {
+		return nil
+	}
+
+	u.RememberHash = uv.hmac.Hash(u.Remember)
 	return nil
 }
 
