@@ -3,18 +3,16 @@ package models_test
 import (
 	"testing"
 
-	"github.com/karimla/webapp/lib"
 	"github.com/karimla/webapp/models"
+	"github.com/karimla/webapp/utils"
+	"github.com/nicholasjackson/env"
 )
 
 func testingUserService() models.UserService {
-	db := lib.InitDB()
-
-	us := models.NewUserService(db)
-
-	us.DestructiveReset()
-
-	return us
+	utils.Must(env.Parse())
+	s := models.NewServices()
+	s.DestructiveReset()
+	return s.User
 }
 
 func TestCreateUser(t *testing.T) {
@@ -23,7 +21,7 @@ func TestCreateUser(t *testing.T) {
 	user := models.User{
 		Name:     "Sam Lee",
 		Email:    "sam@test.com",
-		Password: "",
+		Password: "password",
 	}
 	err := us.Create(&user)
 	if err != nil {
