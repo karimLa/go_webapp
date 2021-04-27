@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"sync"
 
 	"github.com/gorilla/mux"
@@ -24,14 +25,16 @@ func main() {
 
 	staticC := controllers.NewStatic(wg)
 	usersC := controllers.NewUsers(wg, services.User)
+	galleriesC := controllers.NewGalleries(wg, services.Gallery)
 
 	r := mux.NewRouter()
-	r.Handle("/", staticC.HomeView).Methods("GET")
-	r.Handle("/contact", staticC.ContactView).Methods("GET")
-	r.Handle("/signup", usersC.SignupView).Methods("GET")
-	r.Handle("/login", usersC.LoginView).Methods("GET")
-	r.HandleFunc("/signup", usersC.Signup).Methods("POST")
-	r.HandleFunc("/login", usersC.Login).Methods("POST")
+	r.Handle("/", staticC.HomeView).Methods(http.MethodGet)
+	r.Handle("/contact", staticC.ContactView).Methods(http.MethodGet)
+	r.Handle("/signup", usersC.SignupView).Methods(http.MethodGet)
+	r.HandleFunc("/signup", usersC.Signup).Methods(http.MethodPost)
+	r.Handle("/login", usersC.LoginView).Methods(http.MethodGet)
+	r.HandleFunc("/login", usersC.Login).Methods(http.MethodPost)
+	r.Handle("/galleries/new", galleriesC.NewView).Methods(http.MethodGet)
 
 	s := lib.NewServer(l, wg, r)
 
