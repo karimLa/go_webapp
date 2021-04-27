@@ -17,13 +17,13 @@ func main() {
 
 	wg := &sync.WaitGroup{}
 	l := lib.InitLog()
-	db := lib.InitDB()
-	us := models.NewUserService(db)
 
-	utils.Must(us.AutoMigrate())
+	services := models.NewServices()
+	utils.Must(services.AutoMigrate())
+	defer services.Close()
 
 	staticC := controllers.NewStatic(wg)
-	usersC := controllers.NewUsers(wg, us)
+	usersC := controllers.NewUsers(wg, services.User)
 
 	r := mux.NewRouter()
 	r.Handle("/", staticC.HomeView).Methods("GET")
