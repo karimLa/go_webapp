@@ -1,7 +1,6 @@
 package models
 
 import (
-	"errors"
 	"regexp"
 	"strings"
 
@@ -9,20 +8,6 @@ import (
 	"github.com/karimla/webapp/utils"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
-)
-
-var (
-	ErrNotFound          = errors.New("models: resource not found")
-	ErrIDInvalid         = errors.New("models: ID provided was invalid")
-	ErrNotImplemented    = errors.New("models: not implemented")
-	ErrEmailRequired     = errors.New("models: email address is required")
-	ErrEmailInvalid      = errors.New("models: email address is not valid")
-	ErrEmailTaken        = errors.New("models: email address is already taken")
-	ErrPasswordInccorect = errors.New("models: incorrect password provided")
-	ErrPasswordRequired  = errors.New("models: password is required")
-	ErrPasswordTooShort  = errors.New("models: password must be at least 8 characters long")
-	ErrRememberTooShort  = errors.New("models: remember token is too short")
-	ErrRememberRequired  = errors.New("models: remember hash is required")
 )
 
 // User represents the user model stored in our database

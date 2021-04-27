@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"sync"
 
@@ -44,8 +43,13 @@ func (u *Users) Signup(w http.ResponseWriter, r *http.Request) {
 	u.wg.Add(1)
 	defer u.wg.Done()
 
+	var vd views.Data
 	var form SignupForm
-	parseForm(r, &form)
+	if err := parseForm(r, &form); err != nil {
+		vd.SetAlert(err)
+		u.SignupView.Render(w, vd)
+		return
+	}
 
 	user := models.User{
 		Name:     form.Name,
@@ -54,12 +58,13 @@ func (u *Users) Signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := u.us.Create(&user); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		vd.SetAlert(err)
+		u.SignupView.Render(w, vd)
 		return
 	}
 
 	if err := u.signIn(w, &user); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
 	http.Redirect(w, r, "/", http.StatusFound)
@@ -78,27 +83,30 @@ func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
 	u.wg.Add(1)
 	defer u.wg.Done()
 
+	vd := views.Data{}
 	var form LoginForm
-	parseForm(r, &form)
+	if err := parseForm(r, &form); err != nil {
+		vd.SetAlert(err)
+		u.LoginView.Render(w, vd)
+		return
+	}
 
 	user, err := u.us.Authenticate(form.Email, form.Password)
 	if err != nil {
 		if err == models.ErrNotFound {
-			fmt.Fprintln(w, "Invalid email address.")
+			vd.AlertError("Invalid email address")
+			u.LoginView.Render(w, vd)
 			return
 		}
 
-		if err == models.ErrPasswordInccorect {
-			fmt.Fprintln(w, "Invalid password.")
-			return
-		}
-
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		vd.SetAlert(err)
+		u.LoginView.Render(w, vd)
 		return
 	}
 
 	if err = u.signIn(w, user); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		vd.SetAlert(err)
+		u.LoginView.Render(w, vd)
 		return
 	}
 	http.Redirect(w, r, "/", http.StatusFound)

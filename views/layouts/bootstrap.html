@@ -14,7 +14,8 @@
     {{template "navbar" .}}
 
     <div class="container-fluid">
-      {{template "yield" .}} {{template "footer"}}
+      {{if .Alert}} {{template "alert" .Alert}} {{end}} {{template "yield" .}}
+      {{template "footer"}}
     </div>
 
     <!-- jquery & Bootstrap JS -->

@@ -1,12 +1,12 @@
 package views
 
 import (
+	"bytes"
+	"io"
 	"net/http"
 	"path/filepath"
 	"sync"
 	"text/template"
-
-	"github.com/karimla/webapp/utils"
 )
 
 var (
@@ -44,12 +44,27 @@ func (v *View) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	v.wg.Add(1)
 	defer v.wg.Done()
 
-	utils.Must(v.Render(w, nil))
+	v.Render(w, nil)
 }
 
-func (v *View) Render(w http.ResponseWriter, data interface{}) error {
+func (v *View) Render(w http.ResponseWriter, data interface{}) {
 	w.Header().Set("Content-Type", "text/html")
-	return v.Template.ExecuteTemplate(w, v.Layout, data)
+	switch data.(type) {
+	case Data:
+		// Do nothing
+	default:
+		data = Data{
+			Yield: data,
+		}
+
+	}
+	var buf bytes.Buffer
+	if err := v.Template.ExecuteTemplate(&buf, v.Layout, data); err != nil {
+		http.Error(w, AlertMsgGeneric, http.StatusInternalServerError)
+		return
+	}
+
+	io.Copy(w, &buf)
 }
 
 func getLayoutFileNames() []string {

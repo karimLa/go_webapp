@@ -13,7 +13,7 @@ func parseForm(r *http.Request, dst interface{}) error {
 
 	d := schema.NewDecoder()
 	if err := d.Decode(dst, r.PostForm); err != nil {
-		return err
+		return parseError(err.Error())
 	}
 
 	return nil
