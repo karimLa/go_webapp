@@ -39,6 +39,43 @@ func newGalleryValidator(gg *galleryGorm) *galleryValidator {
 	}
 }
 
+func (gv *galleryValidator) Create(g *Gallery) error {
+	fns := []galleryValidatorFunc{gv.userIDRequired, gv.titleRequired}
+	if err := runGalleryValFuncs(g, fns...); err != nil {
+		return err
+	}
+	return gv.GalleryDB.Create(g)
+}
+
+func (gv *galleryValidator) userIDRequired(g *Gallery) error {
+	if g.UserID <= 0 {
+		return ErrUserIDRequired
+	}
+
+	return nil
+}
+
+func (gv *galleryValidator) titleRequired(g *Gallery) error {
+	if g.Title == "" {
+		return ErrTitleRequired
+	}
+
+	return nil
+}
+
+type galleryValidatorFunc func(*Gallery) error
+
+// runGalleryValFuncs runs the given fns passing gallery to each one.
+// If it encountres an error, it returns it and breaks.
+func runGalleryValFuncs(g *Gallery, fns ...galleryValidatorFunc) error {
+	for _, fn := range fns {
+		if err := fn(g); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 type galleryGorm struct {
 	db *gorm.DB
 }

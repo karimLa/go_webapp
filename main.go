@@ -35,6 +35,7 @@ func main() {
 	r.Handle("/login", usersC.LoginView).Methods(http.MethodGet)
 	r.HandleFunc("/login", usersC.Login).Methods(http.MethodPost)
 	r.Handle("/galleries/new", galleriesC.NewView).Methods(http.MethodGet)
+	r.HandleFunc("/galleries", galleriesC.Create).Methods(http.MethodPost)
 
 	s := lib.NewServer(l, wg, r)
 
