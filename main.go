@@ -29,6 +29,7 @@ func main() {
 	galleriesC := controllers.NewGalleries(services.Gallery)
 
 	ar := middleware.NewAwaitRequest(wg)
+	ru := middleware.NewRequireUser(services.User)
 
 	r := mux.NewRouter()
 	r.Handle("/", ar.Apply(staticC.HomeView)).Methods(http.MethodGet)
@@ -37,8 +38,8 @@ func main() {
 	r.HandleFunc("/signup", ar.ApplyFn(usersC.Signup)).Methods(http.MethodPost)
 	r.Handle("/login", ar.Apply(usersC.LoginView)).Methods(http.MethodGet)
 	r.HandleFunc("/login", ar.ApplyFn(usersC.Login)).Methods(http.MethodPost)
-	r.Handle("/galleries/new", ar.Apply(galleriesC.NewView)).Methods(http.MethodGet)
-	r.HandleFunc("/galleries", ar.ApplyFn(galleriesC.Create)).Methods(http.MethodPost)
+	r.Handle("/galleries/new", ar.Apply(ru.Apply(galleriesC.NewView))).Methods(http.MethodGet)
+	r.HandleFunc("/galleries", ar.ApplyFn(ru.ApplyFn(galleriesC.Create))).Methods(http.MethodPost)
 
 	s := lib.NewServer(l, wg, r)
 
