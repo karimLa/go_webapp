@@ -1,9 +1,9 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 
+	"github.com/karimla/webapp/context"
 	"github.com/karimla/webapp/models"
 )
 
@@ -33,7 +33,9 @@ func (mw *requireUser) ApplyFn(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		fmt.Println(user)
+		ctx := r.Context()
+		ctx = context.WithUser(ctx, user)
+		r = r.WithContext(ctx)
 
 		next(w, r)
 	}

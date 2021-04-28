@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/karimla/webapp/context"
 	"github.com/karimla/webapp/models"
 	"github.com/karimla/webapp/views"
 )
@@ -41,8 +42,16 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	u := context.User(r.Context())
+
+	if u == nil {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
+
 	gallery := models.Gallery{
-		Title: form.Title,
+		Title:  form.Title,
+		UserID: u.ID,
 	}
 
 	if err := g.gs.Create(&gallery); err != nil {
