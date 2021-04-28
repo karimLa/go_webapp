@@ -9,6 +9,7 @@ type Gallery struct {
 }
 
 type GalleryDB interface {
+	ByID(id uint) (*Gallery, error)
 	Create(gallery *Gallery) error
 }
 
@@ -88,4 +89,11 @@ func newGalleryGorm(db *gorm.DB) *galleryGorm {
 // Like the ID, CreatedAt, and UpdatedAt fields.
 func (gg *galleryGorm) Create(g *Gallery) error {
 	return gg.db.Create(g).Error
+}
+
+func (gg *galleryGorm) ByID(id uint) (*Gallery, error) {
+	var g Gallery
+	db := gg.db.Where("id = ?", id)
+	err := first(db, &g)
+	return &g, err
 }

@@ -11,14 +11,15 @@ import (
 )
 
 func Register(s *models.Services, wg *sync.WaitGroup) *mux.Router {
+	r := mux.NewRouter()
+
 	staticC := controllers.NewStatic()
 	usersC := controllers.NewUsers(s.User)
-	galleriesC := controllers.NewGalleries(s.Gallery)
+	galleriesC := controllers.NewGalleries(s.Gallery, r)
 
 	ar := middleware.NewAwaitRequest(wg)
 	ru := middleware.NewRequireUser(s.User)
 
-	r := mux.NewRouter()
 	r.Use(ar.Middleware)
 	r.Handle("/", staticC.HomeView).Methods(http.MethodGet)
 	r.Handle("/contact", staticC.ContactView).Methods(http.MethodGet)
@@ -28,6 +29,7 @@ func Register(s *models.Services, wg *sync.WaitGroup) *mux.Router {
 	r.HandleFunc("/login", usersC.Login).Methods(http.MethodPost)
 	r.Handle("/galleries/new", ru.Apply(galleriesC.NewView)).Methods(http.MethodGet)
 	r.HandleFunc("/galleries", ru.ApplyFn(galleriesC.Create)).Methods(http.MethodPost)
+	r.HandleFunc("/galleries/{id:[0-9]+}", galleriesC.Show).Methods(http.MethodGet).Name(controllers.GalleryShowURL)
 
 	return r
 }

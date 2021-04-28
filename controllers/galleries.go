@@ -1,28 +1,37 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
+	"strconv"
 
+	"github.com/gorilla/mux"
 	"github.com/karimla/webapp/context"
 	"github.com/karimla/webapp/models"
 	"github.com/karimla/webapp/views"
+)
+
+const (
+	GalleryShowURL = "gallery_show"
 )
 
 // NewGalleries is used to create a new Gallery controller.
 // This function will panic if the templates are not
 // parsed correctly, and should only be used during
 // initial setup.
-func NewGalleries(gs models.GalleryService) *Galleries {
+func NewGalleries(gs models.GalleryService, r *mux.Router) *Galleries {
 	return &Galleries{
-		gs:      gs,
-		NewView: views.NewView("bootstrap", "galleries/new"),
+		gs:       gs,
+		r:        r,
+		NewView:  views.NewView("bootstrap", "galleries/new"),
+		ShowView: views.NewView("bootstrap", "galleries/show"),
 	}
 }
 
 type Galleries struct {
-	gs      models.GalleryService
-	NewView *views.View
+	gs       models.GalleryService
+	r        *mux.Router
+	NewView  *views.View
+	ShowView *views.View
 }
 
 type CreateGalleryForm struct {
@@ -60,5 +69,42 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintln(w, gallery)
+	url, err := g.r.Get(GalleryShowURL).URL("id", strconv.Itoa(int(gallery.ID)))
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
+
+	http.Redirect(w, r, url.Path, http.StatusFound)
+}
+
+// Show is used to show gallery.
+//
+// GET /galleries/:id
+func (g *Galleries) Show(w http.ResponseWriter, r *http.Request) {
+	var vd views.Data
+
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		vd.SetAlert(models.ErrNotFound)
+		g.ShowView.Render(w, vd)
+		return
+	}
+
+	gallery, err := g.gs.ByID(uint(id))
+	if err != nil {
+		if err == models.ErrNotFound {
+			vd.SetAlert(models.ErrNotFound)
+			g.ShowView.Render(w, vd)
+			return
+		}
+
+		vd.SetAlert(err)
+		g.ShowView.Render(w, vd)
+		return
+	}
+
+	vd.Yield = gallery
+	g.ShowView.Render(w, vd)
 }
