@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
-	"sync"
 	"text/template"
 )
 
@@ -35,7 +34,6 @@ func NewView(layout string, files ...string) *View {
 type View struct {
 	Template *template.Template
 	Layout   string
-	wg       *sync.WaitGroup
 }
 
 func (v *View) ServeHTTP(w http.ResponseWriter, r *http.Request) {
