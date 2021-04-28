@@ -15,7 +15,7 @@ var (
 	TemplateExt string = ".html"
 )
 
-func NewView(wg *sync.WaitGroup, layout string, files ...string) *View {
+func NewView(layout string, files ...string) *View {
 	addTemplatePath(files)
 	addTemplateExt(files)
 	layouts := getLayoutFileNames()
@@ -29,7 +29,6 @@ func NewView(wg *sync.WaitGroup, layout string, files ...string) *View {
 	return &View{
 		Template: t,
 		Layout:   layout,
-		wg:       wg,
 	}
 }
 
@@ -40,10 +39,6 @@ type View struct {
 }
 
 func (v *View) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// Wait for job to finish before shuting down
-	v.wg.Add(1)
-	defer v.wg.Done()
-
 	v.Render(w, nil)
 }
 

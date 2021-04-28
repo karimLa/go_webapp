@@ -1,15 +1,13 @@
 package controllers
 
 import (
-	"sync"
-
 	"github.com/karimla/webapp/views"
 )
 
-func NewStatic(wg *sync.WaitGroup) *Static {
+func NewStatic() *Static {
 	return &Static{
-		HomeView:    views.NewView(wg, "bootstrap", "static/index"),
-		ContactView: views.NewView(wg, "bootstrap", "static/contact"),
+		HomeView:    views.NewView("bootstrap", "static/index"),
+		ContactView: views.NewView("bootstrap", "static/contact"),
 	}
 }
 

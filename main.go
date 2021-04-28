@@ -9,6 +9,7 @@ import (
 
 	"github.com/karimla/webapp/controllers"
 	"github.com/karimla/webapp/lib"
+	"github.com/karimla/webapp/middleware"
 	"github.com/karimla/webapp/models"
 	"github.com/karimla/webapp/utils"
 )
@@ -23,19 +24,21 @@ func main() {
 	utils.Must(services.AutoMigrate())
 	defer services.Close()
 
-	staticC := controllers.NewStatic(wg)
-	usersC := controllers.NewUsers(wg, services.User)
-	galleriesC := controllers.NewGalleries(wg, services.Gallery)
+	staticC := controllers.NewStatic()
+	usersC := controllers.NewUsers(services.User)
+	galleriesC := controllers.NewGalleries(services.Gallery)
+
+	ar := middleware.NewAwaitRequest(wg)
 
 	r := mux.NewRouter()
-	r.Handle("/", staticC.HomeView).Methods(http.MethodGet)
-	r.Handle("/contact", staticC.ContactView).Methods(http.MethodGet)
-	r.Handle("/signup", usersC.SignupView).Methods(http.MethodGet)
-	r.HandleFunc("/signup", usersC.Signup).Methods(http.MethodPost)
-	r.Handle("/login", usersC.LoginView).Methods(http.MethodGet)
-	r.HandleFunc("/login", usersC.Login).Methods(http.MethodPost)
-	r.Handle("/galleries/new", galleriesC.NewView).Methods(http.MethodGet)
-	r.HandleFunc("/galleries", galleriesC.Create).Methods(http.MethodPost)
+	r.Handle("/", ar.Apply(staticC.HomeView)).Methods(http.MethodGet)
+	r.Handle("/contact", ar.Apply(staticC.ContactView)).Methods(http.MethodGet)
+	r.Handle("/signup", ar.Apply(usersC.SignupView)).Methods(http.MethodGet)
+	r.HandleFunc("/signup", ar.ApplyFn(usersC.Signup)).Methods(http.MethodPost)
+	r.Handle("/login", ar.Apply(usersC.LoginView)).Methods(http.MethodGet)
+	r.HandleFunc("/login", ar.ApplyFn(usersC.Login)).Methods(http.MethodPost)
+	r.Handle("/galleries/new", ar.Apply(galleriesC.NewView)).Methods(http.MethodGet)
+	r.HandleFunc("/galleries", ar.ApplyFn(galleriesC.Create)).Methods(http.MethodPost)
 
 	s := lib.NewServer(l, wg, r)
 

@@ -3,7 +3,6 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"sync"
 
 	"github.com/karimla/webapp/models"
 	"github.com/karimla/webapp/views"
@@ -13,17 +12,15 @@ import (
 // This function will panic if the templates are not
 // parsed correctly, and should only be used during
 // initial setup.
-func NewGalleries(wg *sync.WaitGroup, gs models.GalleryService) *Galleries {
+func NewGalleries(gs models.GalleryService) *Galleries {
 	return &Galleries{
 		gs:      gs,
-		wg:      wg,
-		NewView: views.NewView(wg, "bootstrap", "galleries/new"),
+		NewView: views.NewView("bootstrap", "galleries/new"),
 	}
 }
 
 type Galleries struct {
 	gs      models.GalleryService
-	wg      *sync.WaitGroup
 	NewView *views.View
 }
 
@@ -36,9 +33,6 @@ type CreateGalleryForm struct {
 //
 // POST /galleries
 func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
-	g.wg.Add(1)
-	defer g.wg.Done()
-
 	var vd views.Data
 	var form CreateGalleryForm
 	if err := parseForm(r, &form); err != nil {

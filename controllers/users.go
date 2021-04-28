@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"net/http"
-	"sync"
 
 	"github.com/karimla/webapp/lib"
 	"github.com/karimla/webapp/models"
@@ -13,12 +12,11 @@ import (
 // This function will panic if the templates are not
 // parsed correctly, and should only be used during
 // initial setup.
-func NewUsers(wg *sync.WaitGroup, us models.UserService) *Users {
+func NewUsers(us models.UserService) *Users {
 	return &Users{
-		SignupView: views.NewView(wg, "bootstrap", "users/new"),
-		LoginView:  views.NewView(wg, "bootstrap", "users/login"),
+		SignupView: views.NewView("bootstrap", "users/new"),
+		LoginView:  views.NewView("bootstrap", "users/login"),
 		us:         us,
-		wg:         wg,
 	}
 }
 
@@ -26,7 +24,6 @@ type Users struct {
 	SignupView *views.View
 	LoginView  *views.View
 	us         models.UserService
-	wg         *sync.WaitGroup
 }
 
 type SignupForm struct {
@@ -40,9 +37,6 @@ type SignupForm struct {
 //
 // POST /signup
 func (u *Users) Signup(w http.ResponseWriter, r *http.Request) {
-	u.wg.Add(1)
-	defer u.wg.Done()
-
 	var vd views.Data
 	var form SignupForm
 	if err := parseForm(r, &form); err != nil {
@@ -80,9 +74,6 @@ type LoginForm struct {
 //
 // POST /login
 func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
-	u.wg.Add(1)
-	defer u.wg.Done()
-
 	vd := views.Data{}
 	var form LoginForm
 	if err := parseForm(r, &form); err != nil {
