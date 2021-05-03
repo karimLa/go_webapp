@@ -27,9 +27,12 @@ func Register(s *models.Services, wg *sync.WaitGroup) *mux.Router {
 	r.HandleFunc("/signup", usersC.Signup).Methods(http.MethodPost)
 	r.Handle("/login", usersC.LoginView).Methods(http.MethodGet)
 	r.HandleFunc("/login", usersC.Login).Methods(http.MethodPost)
-	r.Handle("/galleries/new", ru.Apply(galleriesC.NewView)).Methods(http.MethodGet)
-	r.HandleFunc("/galleries", ru.ApplyFn(galleriesC.Create)).Methods(http.MethodPost)
 	r.HandleFunc("/galleries/{id:[0-9]+}", galleriesC.Show).Methods(http.MethodGet).Name(controllers.GalleryShowURL)
+
+	authR := r.NewRoute().Subrouter()
+	authR.Use(ru.Middleware)
+	authR.Handle("/galleries/new", galleriesC.NewView).Methods(http.MethodGet)
+	authR.HandleFunc("/galleries", galleriesC.Create).Methods(http.MethodPost)
 
 	return r
 }

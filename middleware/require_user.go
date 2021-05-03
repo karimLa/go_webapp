@@ -15,6 +15,11 @@ func NewRequireUser(us models.UserService) *requireUser {
 	return &requireUser{us}
 }
 
+// Middleware function, which will be called for each request
+func (mw *requireUser) Middleware(next http.Handler) http.Handler {
+	return mw.ApplyFn(next.ServeHTTP)
+}
+
 func (mw *requireUser) Apply(next http.Handler) http.HandlerFunc {
 	return mw.ApplyFn(next.ServeHTTP)
 }
