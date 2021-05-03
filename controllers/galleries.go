@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -18,10 +19,11 @@ const (
 // This function will panic if the templates are not
 // parsed correctly, and should only be used during
 // initial setup.
-func NewGalleries(gs models.GalleryService, r *mux.Router) *Galleries {
+func NewGalleries(gs models.GalleryService, r *mux.Router, l *log.Logger) *Galleries {
 	return &Galleries{
 		gs:       gs,
 		r:        r,
+		l:        l,
 		NewView:  views.NewView("bootstrap", "galleries/new"),
 		ShowView: views.NewView("bootstrap", "galleries/show"),
 	}
@@ -30,6 +32,7 @@ func NewGalleries(gs models.GalleryService, r *mux.Router) *Galleries {
 type Galleries struct {
 	gs       models.GalleryService
 	r        *mux.Router
+	l        *log.Logger
 	NewView  *views.View
 	ShowView *views.View
 }
@@ -87,6 +90,7 @@ func (g *Galleries) Show(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
+		g.l.Println("Error: converting id to int", err)
 		vd.SetAlert(models.ErrNotFound)
 		g.ShowView.Render(w, vd)
 		return
@@ -94,6 +98,7 @@ func (g *Galleries) Show(w http.ResponseWriter, r *http.Request) {
 
 	gallery, err := g.gs.ByID(uint(id))
 	if err != nil {
+		g.l.Println("Error: fetching gallery", err)
 		if err == models.ErrNotFound {
 			vd.SetAlert(models.ErrNotFound)
 			g.ShowView.Render(w, vd)

@@ -21,7 +21,7 @@ func main() {
 	utils.Must(services.AutoMigrate())
 	defer services.Close()
 
-	r := routes.Register(services, wg)
+	r := routes.Register(services, wg, l)
 	s := lib.NewServer(l, wg, r)
 
 	go s.Start()

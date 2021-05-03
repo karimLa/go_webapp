@@ -46,12 +46,10 @@ func (v *View) Render(w http.ResponseWriter, data interface{}) {
 	switch d := data.(type) {
 	case Data:
 		vd = d
-		// Do nothing
 	default:
 		vd = Data{
 			Yield: data,
 		}
-
 	}
 	var buf bytes.Buffer
 	if err := v.Template.ExecuteTemplate(&buf, v.Layout, vd); err != nil {

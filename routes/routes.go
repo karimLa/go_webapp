@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"log"
 	"net/http"
 	"sync"
 
@@ -10,12 +11,12 @@ import (
 	"github.com/soramon0/webapp/models"
 )
 
-func Register(s *models.Services, wg *sync.WaitGroup) *mux.Router {
+func Register(s *models.Services, wg *sync.WaitGroup, l *log.Logger) *mux.Router {
 	r := mux.NewRouter()
 
 	staticC := controllers.NewStatic()
 	usersC := controllers.NewUsers(s.User)
-	galleriesC := controllers.NewGalleries(s.Gallery, r)
+	galleriesC := controllers.NewGalleries(s.Gallery, r, l)
 
 	ar := middleware.NewAwaitRequest(wg)
 	ru := middleware.NewRequireUser(s.User)
