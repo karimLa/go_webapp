@@ -26,6 +26,7 @@ func NewGalleries(gs models.GalleryService, r *mux.Router, l *log.Logger) *Galle
 		l:        l,
 		NewView:  views.NewView("bootstrap", "galleries/new"),
 		ShowView: views.NewView("bootstrap", "galleries/show"),
+		EditView: views.NewView("bootstrap", "galleries/edit"),
 	}
 }
 
@@ -35,6 +36,7 @@ type Galleries struct {
 	l        *log.Logger
 	NewView  *views.View
 	ShowView *views.View
+	EditView *views.View
 }
 
 type CreateGalleryForm struct {
@@ -85,15 +87,45 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 //
 // GET /galleries/:id
 func (g *Galleries) Show(w http.ResponseWriter, r *http.Request) {
-	var vd views.Data
+	gallery, err := g.galleryByID(w, r)
+	if err != nil {
+		return
+	}
 
+	vd := views.Data{Yield: gallery}
+	g.ShowView.Render(w, vd)
+}
+
+// Edit is used to edit gallery.
+//
+// GET /galleries/:id/edit
+func (g *Galleries) Edit(w http.ResponseWriter, r *http.Request) {
+	gallery, err := g.galleryByID(w, r)
+	if err != nil {
+		return
+	}
+
+	var vd views.Data
+	user := context.User(r.Context())
+	if gallery.UserID != user.ID {
+		vd.SetAlert(models.ErrNotFound)
+		g.ShowView.Render(w, vd)
+		return
+	}
+
+	vd.Yield = gallery
+	g.EditView.Render(w, vd)
+}
+
+func (g *Galleries) galleryByID(w http.ResponseWriter, r *http.Request) (*models.Gallery, error) {
+	var vd views.Data
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
 		g.l.Println("Error: converting id to int", err)
-		vd.SetAlert(models.ErrNotFound)
+		vd.SetAlert(err)
 		g.ShowView.Render(w, vd)
-		return
+		return nil, err
 	}
 
 	gallery, err := g.gs.ByID(uint(id))
@@ -102,14 +134,13 @@ func (g *Galleries) Show(w http.ResponseWriter, r *http.Request) {
 		if err == models.ErrNotFound {
 			vd.SetAlert(models.ErrNotFound)
 			g.ShowView.Render(w, vd)
-			return
+			return nil, err
 		}
 
 		vd.SetAlert(err)
 		g.ShowView.Render(w, vd)
-		return
+		return nil, err
 	}
 
-	vd.Yield = gallery
-	g.ShowView.Render(w, vd)
+	return gallery, nil
 }
