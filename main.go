@@ -5,10 +5,10 @@ import (
 
 	"github.com/nicholasjackson/env"
 
-	"github.com/karimla/webapp/lib"
-	"github.com/karimla/webapp/models"
-	"github.com/karimla/webapp/routes"
-	"github.com/karimla/webapp/utils"
+	"github.com/soramon0/webapp/lib"
+	"github.com/soramon0/webapp/models"
+	"github.com/soramon0/webapp/routes"
+	"github.com/soramon0/webapp/utils"
 )
 
 func main() {

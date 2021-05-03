@@ -5,9 +5,9 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/karimla/webapp/context"
-	"github.com/karimla/webapp/models"
-	"github.com/karimla/webapp/views"
+	"github.com/soramon0/webapp/context"
+	"github.com/soramon0/webapp/models"
+	"github.com/soramon0/webapp/views"
 )
 
 const (

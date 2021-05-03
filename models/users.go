@@ -4,8 +4,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/karimla/webapp/lib"
-	"github.com/karimla/webapp/utils"
+	"github.com/soramon0/webapp/lib"
+	"github.com/soramon0/webapp/utils"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )

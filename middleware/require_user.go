@@ -3,8 +3,8 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/karimla/webapp/context"
-	"github.com/karimla/webapp/models"
+	"github.com/soramon0/webapp/context"
+	"github.com/soramon0/webapp/models"
 )
 
 type requireUser struct {

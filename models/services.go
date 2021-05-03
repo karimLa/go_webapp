@@ -1,8 +1,8 @@
 package models
 
 import (
-	"github.com/karimla/webapp/lib"
-	"github.com/karimla/webapp/utils"
+	"github.com/soramon0/webapp/lib"
+	"github.com/soramon0/webapp/utils"
 	"gorm.io/gorm"
 )
 

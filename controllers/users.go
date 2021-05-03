@@ -3,9 +3,9 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/karimla/webapp/lib"
-	"github.com/karimla/webapp/models"
-	"github.com/karimla/webapp/views"
+	"github.com/soramon0/webapp/lib"
+	"github.com/soramon0/webapp/models"
+	"github.com/soramon0/webapp/views"
 )
 
 // New Users is used to create a new Users controller.

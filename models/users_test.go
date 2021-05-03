@@ -3,9 +3,9 @@ package models_test
 import (
 	"testing"
 
-	"github.com/karimla/webapp/models"
-	"github.com/karimla/webapp/utils"
 	"github.com/nicholasjackson/env"
+	"github.com/soramon0/webapp/models"
+	"github.com/soramon0/webapp/utils"
 )
 
 func testingUserService() models.UserService {
