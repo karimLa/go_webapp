@@ -13,6 +13,7 @@ import (
 
 const (
 	GalleryShowURL = "gallery_show"
+	GalleryEditURL = "gallery_edit"
 )
 
 // NewGalleries is used to create a new Gallery controller.
@@ -21,22 +22,24 @@ const (
 // initial setup.
 func NewGalleries(gs models.GalleryService, r *mux.Router, l *log.Logger) *Galleries {
 	return &Galleries{
-		gs:       gs,
-		r:        r,
-		l:        l,
-		NewView:  views.NewView("bootstrap", "galleries/new"),
-		ShowView: views.NewView("bootstrap", "galleries/show"),
-		EditView: views.NewView("bootstrap", "galleries/edit"),
+		gs:        gs,
+		r:         r,
+		l:         l,
+		IndexView: views.NewView("bootstrap", "galleries/index"),
+		NewView:   views.NewView("bootstrap", "galleries/new"),
+		ShowView:  views.NewView("bootstrap", "galleries/show"),
+		EditView:  views.NewView("bootstrap", "galleries/edit"),
 	}
 }
 
 type Galleries struct {
-	gs       models.GalleryService
-	r        *mux.Router
-	l        *log.Logger
-	NewView  *views.View
-	ShowView *views.View
-	EditView *views.View
+	gs        models.GalleryService
+	r         *mux.Router
+	l         *log.Logger
+	IndexView *views.View
+	NewView   *views.View
+	ShowView  *views.View
+	EditView  *views.View
 }
 
 type CreateGalleryForm struct {
@@ -74,13 +77,29 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url, err := g.r.Get(GalleryShowURL).URL("id", strconv.Itoa(int(gallery.ID)))
+	url, err := g.r.Get(GalleryEditURL).URL("id", strconv.Itoa(int(gallery.ID)))
 	if err != nil {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 
 	http.Redirect(w, r, url.Path, http.StatusFound)
+}
+
+// Index is used to show the user galleries.
+//
+// GET /galleries
+func (g *Galleries) Index(w http.ResponseWriter, r *http.Request) {
+	user := context.User(r.Context())
+	galleries, err := g.gs.ByUserID(user.ID)
+	if err != nil {
+		http.Error(w, "Something went wrong.", http.StatusInternalServerError)
+		return
+	}
+
+	var vd views.Data
+	vd.Yield = galleries
+	g.IndexView.Render(w, vd)
 }
 
 // Show is used to show gallery.
