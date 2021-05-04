@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"path/filepath"
 	"text/template"
+
+	"github.com/soramon0/webapp/context"
 )
 
 var (
@@ -37,10 +39,10 @@ type View struct {
 }
 
 func (v *View) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	v.Render(w, nil)
+	v.Render(w, r, nil)
 }
 
-func (v *View) Render(w http.ResponseWriter, data interface{}) {
+func (v *View) Render(w http.ResponseWriter, r *http.Request, data interface{}) {
 	w.Header().Set("Content-Type", "text/html")
 	var vd Data
 	switch d := data.(type) {
@@ -51,6 +53,9 @@ func (v *View) Render(w http.ResponseWriter, data interface{}) {
 			Yield: data,
 		}
 	}
+
+	vd.User = context.User(r.Context())
+
 	var buf bytes.Buffer
 	if err := v.Template.ExecuteTemplate(&buf, v.Layout, vd); err != nil {
 		http.Error(w, AlertMsgGeneric, http.StatusInternalServerError)

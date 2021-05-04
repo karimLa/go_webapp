@@ -56,7 +56,7 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 	var form CreateGalleryForm
 	if err := parseForm(r, &form); err != nil {
 		vd.SetAlert(err)
-		g.NewView.Render(w, vd)
+		g.NewView.Render(w, r, vd)
 		return
 	}
 
@@ -74,7 +74,7 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 
 	if err := g.gs.Create(&gallery); err != nil {
 		vd.SetAlert(err)
-		g.NewView.Render(w, vd)
+		g.NewView.Render(w, r, vd)
 		return
 	}
 
@@ -100,7 +100,7 @@ func (g *Galleries) Index(w http.ResponseWriter, r *http.Request) {
 
 	var vd views.Data
 	vd.Yield = galleries
-	g.IndexView.Render(w, vd)
+	g.IndexView.Render(w, r, vd)
 }
 
 // Show is used to show gallery.
@@ -113,7 +113,7 @@ func (g *Galleries) Show(w http.ResponseWriter, r *http.Request) {
 	}
 
 	vd := views.Data{Yield: gallery}
-	g.ShowView.Render(w, vd)
+	g.ShowView.Render(w, r, vd)
 }
 
 // Edit is used to show the edit gallery view.
@@ -129,12 +129,12 @@ func (g *Galleries) Edit(w http.ResponseWriter, r *http.Request) {
 	user := context.User(r.Context())
 	if gallery.UserID != user.ID {
 		vd.SetAlert(models.ErrNotFound)
-		g.ShowView.Render(w, vd)
+		g.ShowView.Render(w, r, vd)
 		return
 	}
 
 	vd.Yield = gallery
-	g.EditView.Render(w, vd)
+	g.EditView.Render(w, r, vd)
 }
 
 type UpdateGalleryForm struct {
@@ -154,7 +154,7 @@ func (g *Galleries) Update(w http.ResponseWriter, r *http.Request) {
 	user := context.User(r.Context())
 	if gallery.UserID != user.ID {
 		vd.SetAlert(models.ErrNotFound)
-		g.EditView.Render(w, vd)
+		g.EditView.Render(w, r, vd)
 		return
 	}
 
@@ -162,14 +162,14 @@ func (g *Galleries) Update(w http.ResponseWriter, r *http.Request) {
 	var form UpdateGalleryForm
 	if err := parseForm(r, &form); err != nil {
 		vd.SetAlert(err)
-		g.EditView.Render(w, vd)
+		g.EditView.Render(w, r, vd)
 		return
 	}
 
 	gallery.Title = form.Title
 	if err := g.gs.Update(gallery); err != nil {
 		vd.SetAlert(err)
-		g.EditView.Render(w, vd)
+		g.EditView.Render(w, r, vd)
 		return
 	}
 
@@ -177,7 +177,7 @@ func (g *Galleries) Update(w http.ResponseWriter, r *http.Request) {
 		Level:   views.AlertLevelSucess,
 		Message: "Gallery successfully updated!",
 	}
-	g.EditView.Render(w, vd)
+	g.EditView.Render(w, r, vd)
 }
 
 // UpdateDelete is used to delete a gallery.
@@ -193,18 +193,18 @@ func (g *Galleries) Delete(w http.ResponseWriter, r *http.Request) {
 	user := context.User(r.Context())
 	if gallery.UserID != user.ID {
 		vd.SetAlert(models.ErrNotFound)
-		g.EditView.Render(w, vd)
+		g.EditView.Render(w, r, vd)
 		return
 	}
 
 	if err := g.gs.Delete(gallery.ID); err != nil {
 		vd.Yield = gallery
 		vd.SetAlert(err)
-		g.EditView.Render(w, vd)
+		g.EditView.Render(w, r, vd)
 		return
 	}
 
-	url, err := g.r.Get(GalleriesIndexURL).URL("id", strconv.Itoa(int(gallery.ID)))
+	url, err := g.r.Get(GalleriesIndexURL).URL()
 	if err != nil {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
@@ -220,7 +220,7 @@ func (g *Galleries) galleryByID(w http.ResponseWriter, r *http.Request) (*models
 	if err != nil {
 		g.l.Println("Error: converting id to int", err)
 		vd.SetAlert(err)
-		g.ShowView.Render(w, vd)
+		g.ShowView.Render(w, r, vd)
 		return nil, err
 	}
 
@@ -229,12 +229,12 @@ func (g *Galleries) galleryByID(w http.ResponseWriter, r *http.Request) (*models
 		g.l.Println("Error: fetching gallery", err)
 		if err == models.ErrNotFound {
 			vd.SetAlert(models.ErrNotFound)
-			g.ShowView.Render(w, vd)
+			g.ShowView.Render(w, r, vd)
 			return nil, err
 		}
 
 		vd.SetAlert(err)
-		g.ShowView.Render(w, vd)
+		g.ShowView.Render(w, r, vd)
 		return nil, err
 	}
 

@@ -1,8 +1,10 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/soramon0/webapp/lib"
 	"github.com/soramon0/webapp/models"
 	"github.com/soramon0/webapp/views"
@@ -12,11 +14,13 @@ import (
 // This function will panic if the templates are not
 // parsed correctly, and should only be used during
 // initial setup.
-func NewUsers(us models.UserService) *Users {
+func NewUsers(us models.UserService, r *mux.Router, l *log.Logger) *Users {
 	return &Users{
 		SignupView: views.NewView("bootstrap", "users/new"),
 		LoginView:  views.NewView("bootstrap", "users/login"),
 		us:         us,
+		r:          r,
+		l:          l,
 	}
 }
 
@@ -24,6 +28,8 @@ type Users struct {
 	SignupView *views.View
 	LoginView  *views.View
 	us         models.UserService
+	r          *mux.Router
+	l          *log.Logger
 }
 
 type SignupForm struct {
@@ -41,7 +47,7 @@ func (u *Users) Signup(w http.ResponseWriter, r *http.Request) {
 	var form SignupForm
 	if err := parseForm(r, &form); err != nil {
 		vd.SetAlert(err)
-		u.SignupView.Render(w, vd)
+		u.SignupView.Render(w, r, vd)
 		return
 	}
 
@@ -53,7 +59,7 @@ func (u *Users) Signup(w http.ResponseWriter, r *http.Request) {
 
 	if err := u.us.Create(&user); err != nil {
 		vd.SetAlert(err)
-		u.SignupView.Render(w, vd)
+		u.SignupView.Render(w, r, vd)
 		return
 	}
 
@@ -61,7 +67,13 @@ func (u *Users) Signup(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
-	http.Redirect(w, r, "/", http.StatusFound)
+
+	url, err := u.r.Get(GalleriesIndexURL).URL()
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
+	http.Redirect(w, r, url.Path, http.StatusFound)
 }
 
 type LoginForm struct {
@@ -78,7 +90,7 @@ func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
 	var form LoginForm
 	if err := parseForm(r, &form); err != nil {
 		vd.SetAlert(err)
-		u.LoginView.Render(w, vd)
+		u.LoginView.Render(w, r, vd)
 		return
 	}
 
@@ -86,21 +98,27 @@ func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if err == models.ErrNotFound {
 			vd.AlertError("Invalid email address")
-			u.LoginView.Render(w, vd)
+			u.LoginView.Render(w, r, vd)
 			return
 		}
 
 		vd.SetAlert(err)
-		u.LoginView.Render(w, vd)
+		u.LoginView.Render(w, r, vd)
 		return
 	}
 
 	if err = u.signIn(w, user); err != nil {
 		vd.SetAlert(err)
-		u.LoginView.Render(w, vd)
+		u.LoginView.Render(w, r, vd)
 		return
 	}
-	http.Redirect(w, r, "/", http.StatusFound)
+
+	url, err := u.r.Get(GalleriesIndexURL).URL()
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
+	http.Redirect(w, r, url.Path, http.StatusFound)
 }
 
 func (u *Users) signIn(w http.ResponseWriter, user *models.User) error {

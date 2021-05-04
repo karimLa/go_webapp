@@ -15,13 +15,15 @@ func Register(s *models.Services, wg *sync.WaitGroup, l *log.Logger) *mux.Router
 	r := mux.NewRouter()
 
 	staticC := controllers.NewStatic()
-	usersC := controllers.NewUsers(s.User)
+	usersC := controllers.NewUsers(s.User, r, l)
 	galleriesC := controllers.NewGalleries(s.Gallery, r, l)
 
 	ar := middleware.NewAwaitRequest(wg)
-	ru := middleware.NewRequireUser(s.User)
+	um := middleware.NewUser(s.User)
+	ru := middleware.NewRequireUser(*um)
 
 	r.Use(ar.Middleware)
+	r.Use(um.Middleware)
 	r.Handle("/", staticC.HomeView).Methods(http.MethodGet)
 	r.Handle("/contact", staticC.ContactView).Methods(http.MethodGet)
 	r.Handle("/signup", usersC.SignupView).Methods(http.MethodGet)
