@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	GalleryShowURL = "gallery_show"
-	GalleryEditURL = "gallery_edit"
+	GalleryShowURL    = "gallery_show"
+	GalleryEditURL    = "gallery_edit"
+	GalleriesIndexURL = "gallery_index"
 )
 
 // NewGalleries is used to create a new Gallery controller.
@@ -203,7 +204,13 @@ func (g *Galleries) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/", http.StatusMovedPermanently)
+	url, err := g.r.Get(GalleriesIndexURL).URL("id", strconv.Itoa(int(gallery.ID)))
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
+
+	http.Redirect(w, r, url.Path, http.StatusMovedPermanently)
 }
 
 func (g *Galleries) galleryByID(w http.ResponseWriter, r *http.Request) (*models.Gallery, error) {
