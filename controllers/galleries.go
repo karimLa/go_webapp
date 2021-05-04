@@ -123,7 +123,7 @@ type UpdateGalleryForm struct {
 
 // Update is used to update a gallery.
 //
-// GET /galleries/:id/update
+// POST /galleries/:id/update
 func (g *Galleries) Update(w http.ResponseWriter, r *http.Request) {
 	gallery, err := g.galleryByID(w, r)
 	if err != nil {
@@ -138,6 +138,7 @@ func (g *Galleries) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	vd.Yield = gallery
 	var form UpdateGalleryForm
 	if err := parseForm(r, &form); err != nil {
 		vd.SetAlert(err)
@@ -156,8 +157,34 @@ func (g *Galleries) Update(w http.ResponseWriter, r *http.Request) {
 		Level:   views.AlertLevelSucess,
 		Message: "Gallery successfully updated!",
 	}
-	vd.Yield = gallery
 	g.EditView.Render(w, vd)
+}
+
+// UpdateDelete is used to delete a gallery.
+//
+// POST /galleries/:id/delete
+func (g *Galleries) Delete(w http.ResponseWriter, r *http.Request) {
+	gallery, err := g.galleryByID(w, r)
+	if err != nil {
+		return
+	}
+
+	var vd views.Data
+	user := context.User(r.Context())
+	if gallery.UserID != user.ID {
+		vd.SetAlert(models.ErrNotFound)
+		g.EditView.Render(w, vd)
+		return
+	}
+
+	if err := g.gs.Delete(gallery.ID); err != nil {
+		vd.Yield = gallery
+		vd.SetAlert(err)
+		g.EditView.Render(w, vd)
+		return
+	}
+
+	http.Redirect(w, r, "/", http.StatusMovedPermanently)
 }
 
 func (g *Galleries) galleryByID(w http.ResponseWriter, r *http.Request) (*models.Gallery, error) {
