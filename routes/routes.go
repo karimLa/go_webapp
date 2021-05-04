@@ -35,6 +35,7 @@ func Register(s *models.Services, wg *sync.WaitGroup, l *log.Logger) *mux.Router
 	authR.Handle("/galleries/new", galleriesC.NewView).Methods(http.MethodGet)
 	authR.HandleFunc("/galleries", galleriesC.Create).Methods(http.MethodPost)
 	authR.HandleFunc("/galleries/{id:[0-9]+}/edit", galleriesC.Edit).Methods(http.MethodGet)
+	authR.HandleFunc("/galleries/{id:[0-9]+}/update", galleriesC.Update).Methods(http.MethodPost)
 
 	return r
 }

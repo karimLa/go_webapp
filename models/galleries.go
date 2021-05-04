@@ -11,6 +11,7 @@ type Gallery struct {
 type GalleryDB interface {
 	ByID(id uint) (*Gallery, error)
 	Create(gallery *Gallery) error
+	Update(gallery *Gallery) error
 }
 
 type GalleryService interface {
@@ -46,6 +47,14 @@ func (gv *galleryValidator) Create(g *Gallery) error {
 		return err
 	}
 	return gv.GalleryDB.Create(g)
+}
+
+func (gv *galleryValidator) Update(g *Gallery) error {
+	fns := []galleryValidatorFunc{gv.userIDRequired, gv.titleRequired}
+	if err := runGalleryValFuncs(g, fns...); err != nil {
+		return err
+	}
+	return gv.GalleryDB.Update(g)
 }
 
 func (gv *galleryValidator) userIDRequired(g *Gallery) error {
@@ -85,15 +94,19 @@ func newGalleryGorm(db *gorm.DB) *galleryGorm {
 	return &galleryGorm{db: db}
 }
 
+func (gg *galleryGorm) ByID(id uint) (*Gallery, error) {
+	var g Gallery
+	db := gg.db.Where("id = ?", id)
+	err := first(db, &g)
+	return &g, err
+}
+
 // Create will create the provided gallery and backfill data
 // Like the ID, CreatedAt, and UpdatedAt fields.
 func (gg *galleryGorm) Create(g *Gallery) error {
 	return gg.db.Create(g).Error
 }
 
-func (gg *galleryGorm) ByID(id uint) (*Gallery, error) {
-	var g Gallery
-	db := gg.db.Where("id = ?", id)
-	err := first(db, &g)
-	return &g, err
+func (gg *galleryGorm) Update(g *Gallery) error {
+	return gg.db.Save(g).Error
 }

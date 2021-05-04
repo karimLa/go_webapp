@@ -96,7 +96,7 @@ func (g *Galleries) Show(w http.ResponseWriter, r *http.Request) {
 	g.ShowView.Render(w, vd)
 }
 
-// Edit is used to edit gallery.
+// Edit is used to show the edit gallery view.
 //
 // GET /galleries/:id/edit
 func (g *Galleries) Edit(w http.ResponseWriter, r *http.Request) {
@@ -113,6 +113,49 @@ func (g *Galleries) Edit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	vd.Yield = gallery
+	g.EditView.Render(w, vd)
+}
+
+type UpdateGalleryForm struct {
+	Title string `schema:"title,required"`
+}
+
+// Update is used to update a gallery.
+//
+// GET /galleries/:id/update
+func (g *Galleries) Update(w http.ResponseWriter, r *http.Request) {
+	gallery, err := g.galleryByID(w, r)
+	if err != nil {
+		return
+	}
+
+	var vd views.Data
+	user := context.User(r.Context())
+	if gallery.UserID != user.ID {
+		vd.SetAlert(models.ErrNotFound)
+		g.EditView.Render(w, vd)
+		return
+	}
+
+	var form UpdateGalleryForm
+	if err := parseForm(r, &form); err != nil {
+		vd.SetAlert(err)
+		g.EditView.Render(w, vd)
+		return
+	}
+
+	gallery.Title = form.Title
+	if err := g.gs.Update(gallery); err != nil {
+		vd.SetAlert(err)
+		g.EditView.Render(w, vd)
+		return
+	}
+
+	vd.Alert = &views.Alert{
+		Level:   views.AlertLevelSucess,
+		Message: "Gallery successfully updated!",
+	}
 	vd.Yield = gallery
 	g.EditView.Render(w, vd)
 }
