@@ -69,12 +69,8 @@ func (u *Users) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url, err := u.r.Get(GalleriesIndexURL).URL()
-	if err != nil {
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
-	}
-	http.Redirect(w, r, url.Path, http.StatusFound)
+	path := Reverse(GalleriesIndexURL, "/", u.r)
+	http.Redirect(w, r, path, http.StatusFound)
 }
 
 type LoginForm struct {
@@ -114,12 +110,8 @@ func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url, err := u.r.Get(GalleriesIndexURL).URL()
-	if err != nil {
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
-	}
-	http.Redirect(w, r, url.Path, http.StatusFound)
+	path := Reverse(GalleriesIndexURL, "/", u.r)
+	http.Redirect(w, r, path, http.StatusFound)
 }
 
 func (u *Users) signIn(w http.ResponseWriter, user *models.User) error {

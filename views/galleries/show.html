@@ -6,4 +6,9 @@
     <p>Images coming soon.</p>
   </div>
 </div>
+<div class="row">
+  {{range .Images}}
+  <div class="col-md-3">{{.}}</div>
+  {{end}}
+</div>
 {{end}}
