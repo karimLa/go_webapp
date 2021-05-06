@@ -9,6 +9,7 @@ import (
 
 type Services struct {
 	Gallery GalleryService
+	Image   ImageService
 	User    UserService
 	db      *gorm.DB
 }
@@ -16,10 +17,12 @@ type Services struct {
 func NewServices() *Services {
 	db := lib.InitDB()
 	us := NewUserService(db)
+	is := NewImageService()
 	gs := NewGalleryService(db)
 
 	return &Services{
 		db:      db,
+		Image:   is,
 		Gallery: gs,
 		User:    us,
 	}

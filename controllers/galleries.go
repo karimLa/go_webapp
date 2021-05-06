@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -27,9 +26,10 @@ const (
 // This function will panic if the templates are not
 // parsed correctly, and should only be used during
 // initial setup.
-func NewGalleries(gs models.GalleryService, r *mux.Router, l *log.Logger) *Galleries {
+func NewGalleries(gs models.GalleryService, is models.ImageService, r *mux.Router, l *log.Logger) *Galleries {
 	return &Galleries{
 		gs:        gs,
+		is:        is,
 		r:         r,
 		l:         l,
 		IndexView: views.NewView("bootstrap", "galleries/index"),
@@ -41,6 +41,7 @@ func NewGalleries(gs models.GalleryService, r *mux.Router, l *log.Logger) *Galle
 
 type Galleries struct {
 	gs        models.GalleryService
+	is        models.ImageService
 	r         *mux.Router
 	l         *log.Logger
 	IndexView *views.View
@@ -227,18 +228,8 @@ func (g *Galleries) ImageUpload(w http.ResponseWriter, r *http.Request) {
 			g.EditView.Render(w, r, vd)
 			return
 		}
-		defer file.Close()
 
-		dst, err := os.Create(galleryPath + f.Filename)
-		if err != nil {
-			vd.SetAlert(err)
-			g.EditView.Render(w, r, vd)
-			return
-		}
-		defer dst.Close()
-
-		_, err = io.Copy(dst, file)
-		if err != nil {
+		if err = g.is.Create(gallery.ID, file, f.Filename); err != nil {
 			vd.SetAlert(err)
 			g.EditView.Render(w, r, vd)
 			return

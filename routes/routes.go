@@ -17,7 +17,7 @@ func Register(s *models.Services, wg *sync.WaitGroup, l *log.Logger) *mux.Router
 
 	staticC := controllers.NewStatic()
 	usersC := controllers.NewUsers(s.User, r, l)
-	galleriesC := controllers.NewGalleries(s.Gallery, r, l)
+	galleriesC := controllers.NewGalleries(s.Gallery, s.Image, r, l)
 
 	ar := middleware.NewAwaitRequest(wg)
 	um := middleware.NewUser(s.User)
