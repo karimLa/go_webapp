@@ -5,10 +5,11 @@ import (
 	"net/http"
 	"sync"
 
+	"webapp/controllers"
+	"webapp/middleware"
+	"webapp/models"
+
 	"github.com/gorilla/mux"
-	"github.com/soramon0/webapp/controllers"
-	"github.com/soramon0/webapp/middleware"
-	"github.com/soramon0/webapp/models"
 )
 
 func Register(s *models.Services, wg *sync.WaitGroup, l *log.Logger) *mux.Router {

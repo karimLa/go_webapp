@@ -3,9 +3,10 @@ package models_test
 import (
 	"testing"
 
+	"webapp/models"
+	"webapp/utils"
+
 	"github.com/nicholasjackson/env"
-	"github.com/soramon0/webapp/models"
-	"github.com/soramon0/webapp/utils"
 )
 
 func testingUserService() models.UserService {

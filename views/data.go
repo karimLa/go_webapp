@@ -1,6 +1,6 @@
 package views
 
-import "github.com/soramon0/webapp/models"
+import "webapp/models"
 
 const (
 	AlertLvlError    = "danger"

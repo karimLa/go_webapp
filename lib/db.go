@@ -1,7 +1,8 @@
 package lib
 
 import (
-	"github.com/soramon0/webapp/utils"
+	"webapp/utils"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

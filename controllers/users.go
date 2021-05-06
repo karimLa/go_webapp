@@ -4,10 +4,11 @@ import (
 	"log"
 	"net/http"
 
+	"webapp/lib"
+	"webapp/models"
+	"webapp/views"
+
 	"github.com/gorilla/mux"
-	"github.com/soramon0/webapp/lib"
-	"github.com/soramon0/webapp/models"
-	"github.com/soramon0/webapp/views"
 )
 
 // New Users is used to create a new Users controller.

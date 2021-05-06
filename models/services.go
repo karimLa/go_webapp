@@ -1,8 +1,9 @@
 package models
 
 import (
-	"github.com/soramon0/webapp/lib"
-	"github.com/soramon0/webapp/utils"
+	"webapp/lib"
+	"webapp/utils"
+
 	"gorm.io/gorm"
 )
 

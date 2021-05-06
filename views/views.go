@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/soramon0/webapp/context"
+	"webapp/context"
 )
 
 var (

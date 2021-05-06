@@ -10,8 +10,9 @@ import (
 	"syscall"
 	"time"
 
+	"webapp/utils"
+
 	"github.com/gorilla/mux"
-	"github.com/soramon0/webapp/utils"
 )
 
 func NewServer(l *log.Logger, wg *sync.WaitGroup, r *mux.Router) *Server {

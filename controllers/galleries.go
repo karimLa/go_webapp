@@ -5,10 +5,11 @@ import (
 	"net/http"
 	"strconv"
 
+	"webapp/context"
+	"webapp/models"
+	"webapp/views"
+
 	"github.com/gorilla/mux"
-	"github.com/soramon0/webapp/context"
-	"github.com/soramon0/webapp/models"
-	"github.com/soramon0/webapp/views"
 )
 
 const (
