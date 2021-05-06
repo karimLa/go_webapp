@@ -1,8 +1,11 @@
 package controllers
 
 import (
+	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"webapp/context"
@@ -16,6 +19,8 @@ const (
 	GalleryShowURL    = "gallery_show"
 	GalleryEditURL    = "gallery_edit"
 	GalleriesIndexURL = "gallery_index"
+
+	maxMultipartMem = 1 << 20 // 1 megabyte
 )
 
 // NewGalleries is used to create a new Gallery controller.
@@ -179,6 +184,67 @@ func (g *Galleries) Update(w http.ResponseWriter, r *http.Request) {
 		Message: "Gallery successfully updated!",
 	}
 	g.EditView.Render(w, r, vd)
+}
+
+// ImageUpload is used to upload gallery images.
+//
+// POST /galleries/:id/images
+func (g *Galleries) ImageUpload(w http.ResponseWriter, r *http.Request) {
+	gallery, err := g.galleryByID(w, r)
+	if err != nil {
+		return
+	}
+
+	var vd views.Data
+	user := context.User(r.Context())
+	if gallery.UserID != user.ID {
+		vd.SetAlert(models.ErrNotFound)
+		g.EditView.Render(w, r, vd)
+		return
+	}
+
+	vd.Yield = gallery
+
+	if err = r.ParseMultipartForm(maxMultipartMem); err != nil {
+		vd.SetAlert(err)
+		g.EditView.Render(w, r, vd)
+		return
+	}
+
+	// Create the directory to contain our images
+	galleryPath := fmt.Sprintf("images/galleries/%v/", gallery.ID)
+	if err = os.MkdirAll(galleryPath, 0755); err != nil {
+		vd.SetAlert(err)
+		g.EditView.Render(w, r, vd)
+		return
+	}
+
+	files := r.MultipartForm.File["images"]
+	for _, f := range files {
+		file, err := f.Open()
+		if err != nil {
+			vd.SetAlert(err)
+			g.EditView.Render(w, r, vd)
+			return
+		}
+		defer file.Close()
+
+		dst, err := os.Create(galleryPath + f.Filename)
+		if err != nil {
+			vd.SetAlert(err)
+			g.EditView.Render(w, r, vd)
+			return
+		}
+		defer dst.Close()
+
+		_, err = io.Copy(dst, file)
+		if err != nil {
+			vd.SetAlert(err)
+			g.EditView.Render(w, r, vd)
+			return
+		}
+	}
+	fmt.Fprintln(w, "file(s) uploaded")
 }
 
 // UpdateDelete is used to delete a gallery.
