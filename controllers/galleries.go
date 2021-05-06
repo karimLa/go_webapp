@@ -85,13 +85,8 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url, err := g.r.Get(GalleryEditURL).URL("id", strconv.Itoa(int(gallery.ID)))
-	if err != nil {
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
-	}
-
-	http.Redirect(w, r, url.Path, http.StatusFound)
+	path := Reverse(GalleryEditURL, "/", g.r, "id", strconv.Itoa(int(gallery.ID)))
+	http.Redirect(w, r, path, http.StatusFound)
 }
 
 // Index is used to show the user galleries.
@@ -235,7 +230,9 @@ func (g *Galleries) ImageUpload(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	fmt.Fprintln(w, "file(s) uploaded")
+
+	path := Reverse(GalleryEditURL, "/", g.r, "id", strconv.Itoa(int(gallery.ID)))
+	http.Redirect(w, r, path, http.StatusFound)
 }
 
 // UpdateDelete is used to delete a gallery.
@@ -262,13 +259,8 @@ func (g *Galleries) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url, err := g.r.Get(GalleriesIndexURL).URL()
-	if err != nil {
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
-	}
-
-	http.Redirect(w, r, url.Path, http.StatusMovedPermanently)
+	path := Reverse(GalleriesIndexURL, "/", g.r)
+	http.Redirect(w, r, path, http.StatusMovedPermanently)
 }
 
 func (g *Galleries) galleryByID(w http.ResponseWriter, r *http.Request) (*models.Gallery, error) {
@@ -295,6 +287,9 @@ func (g *Galleries) galleryByID(w http.ResponseWriter, r *http.Request) (*models
 		g.ShowView.Render(w, r, vd)
 		return nil, err
 	}
+
+	images, _ := g.is.ByGalleryID(gallery.ID)
+	gallery.Images = images
 
 	return gallery, nil
 }
