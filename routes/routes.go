@@ -23,6 +23,9 @@ func Register(s *models.Services, wg *sync.WaitGroup, l *log.Logger) *mux.Router
 	um := middleware.NewUser(s.User)
 	ru := middleware.NewRequireUser(*um)
 
+	// Service images
+	r.PathPrefix("/images/").Handler(http.StripPrefix("/images/", http.FileServer(http.Dir("./images"))))
+
 	r.Use(ar.Middleware)
 	r.Use(um.Middleware)
 	r.Handle("/", staticC.HomeView).Methods(http.MethodGet)

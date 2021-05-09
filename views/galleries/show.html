@@ -3,12 +3,23 @@
   <div class="col-md-12">
     <h1>{{.Title}}</h1>
     <hr />
-    <p>Images coming soon.</p>
   </div>
 </div>
 <div class="row">
-  {{range .Images}}
-  <div class="col-md-3">{{.}}</div>
+  {{range .ImageSplitN 3}}
+  <div class="col-md-4">
+    {{range .}}
+    <a href="{{.}}">
+      <img src="/{{.}}" class="thumbnail" />
+    </a>
+    {{end}}
+  </div>
   {{end}}
 </div>
+
+<style>
+  .thumbnail {
+    width: 100%;
+  }
+</style>
 {{end}}
