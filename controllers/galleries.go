@@ -128,6 +128,7 @@ func (g *Galleries) Edit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var vd views.Data
+	vd.Yield = gallery
 	user := context.User(r.Context())
 	if gallery.UserID != user.ID {
 		vd.SetAlert(models.ErrNotFound)
@@ -135,7 +136,6 @@ func (g *Galleries) Edit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vd.Yield = gallery
 	g.EditView.Render(w, r, vd)
 }
 
@@ -153,6 +153,7 @@ func (g *Galleries) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var vd views.Data
+	vd.Yield = gallery
 	user := context.User(r.Context())
 	if gallery.UserID != user.ID {
 		vd.SetAlert(models.ErrNotFound)
@@ -160,7 +161,6 @@ func (g *Galleries) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vd.Yield = gallery
 	var form UpdateGalleryForm
 	if err := parseForm(r, &form); err != nil {
 		vd.SetAlert(err)
@@ -192,14 +192,13 @@ func (g *Galleries) ImageUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var vd views.Data
+	vd.Yield = gallery
 	user := context.User(r.Context())
 	if gallery.UserID != user.ID {
 		vd.SetAlert(models.ErrNotFound)
 		g.EditView.Render(w, r, vd)
 		return
 	}
-
-	vd.Yield = gallery
 
 	if err = r.ParseMultipartForm(maxMultipartMem); err != nil {
 		vd.SetAlert(err)
@@ -235,6 +234,40 @@ func (g *Galleries) ImageUpload(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, path, http.StatusFound)
 }
 
+// ImageDelete is used to delete a gallery image.
+//
+// POST /galleries/:id/images/:filename/delete
+func (g *Galleries) ImageDelete(w http.ResponseWriter, r *http.Request) {
+	gallery, err := g.galleryByID(w, r)
+	if err != nil {
+		return
+	}
+
+	var vd views.Data
+	vd.Yield = gallery
+	user := context.User(r.Context())
+	if gallery.UserID != user.ID {
+		vd.SetAlert(models.ErrNotFound)
+		g.EditView.Render(w, r, vd)
+		return
+	}
+
+	filename := mux.Vars(r)["filename"]
+	i := models.Image{
+		Filename:  filename,
+		GalleryID: gallery.ID,
+	}
+
+	if err = g.is.Delete(&i); err != nil {
+		vd.SetAlert(models.ErrNotFound)
+		g.EditView.Render(w, r, vd)
+		return
+	}
+
+	path := Reverse(GalleryEditURL, GalleriesIndexURL, g.r, "id", strconv.Itoa(int(gallery.ID)))
+	http.Redirect(w, r, path, http.StatusFound)
+}
+
 // UpdateDelete is used to delete a gallery.
 //
 // POST /galleries/:id/delete
@@ -245,6 +278,7 @@ func (g *Galleries) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var vd views.Data
+	vd.Yield = gallery
 	user := context.User(r.Context())
 	if gallery.UserID != user.ID {
 		vd.SetAlert(models.ErrNotFound)
@@ -253,7 +287,6 @@ func (g *Galleries) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := g.gs.Delete(gallery.ID); err != nil {
-		vd.Yield = gallery
 		vd.SetAlert(err)
 		g.EditView.Render(w, r, vd)
 		return
