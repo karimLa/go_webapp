@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -23,6 +24,7 @@ func parseForm(r *http.Request, dst interface{}) error {
 func Reverse(path, fallback string, r *mux.Router, pathArgs ...string) string {
 	url, err := r.Get(path).URL(pathArgs...)
 	if err != nil {
+		fmt.Printf("ERROR: reversing url: %q, %s", path, err)
 		return fallback
 	}
 

@@ -2,6 +2,7 @@ package views
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"path/filepath"
@@ -58,6 +59,7 @@ func (v *View) Render(w http.ResponseWriter, r *http.Request, data interface{}) 
 
 	var buf bytes.Buffer
 	if err := v.Template.ExecuteTemplate(&buf, v.Layout, vd); err != nil {
+		fmt.Println(err)
 		http.Error(w, AlertMsgGeneric, http.StatusInternalServerError)
 		return
 	}

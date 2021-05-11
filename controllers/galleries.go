@@ -68,12 +68,6 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	u := context.User(r.Context())
-
-	if u == nil {
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
-	}
-
 	gallery := models.Gallery{
 		Title:  form.Title,
 		UserID: u.ID,
@@ -85,7 +79,7 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	path := Reverse(GalleryEditURL, "/", g.r, "id", strconv.Itoa(int(gallery.ID)))
+	path := Reverse(GalleryEditURL, GalleriesIndexURL, g.r, "id", strconv.Itoa(int(gallery.ID)))
 	http.Redirect(w, r, path, http.StatusFound)
 }
 
@@ -96,6 +90,7 @@ func (g *Galleries) Index(w http.ResponseWriter, r *http.Request) {
 	user := context.User(r.Context())
 	galleries, err := g.gs.ByUserID(user.ID)
 	if err != nil {
+		g.l.Println(err)
 		http.Error(w, "Something went wrong.", http.StatusInternalServerError)
 		return
 	}

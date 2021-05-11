@@ -1,6 +1,9 @@
 package views
 
-import "webapp/models"
+import (
+	"fmt"
+	"webapp/models"
+)
 
 const (
 	AlertLvlError    = "danger"
@@ -29,6 +32,7 @@ func (d *Data) SetAlert(err error) {
 	if pErr, ok := err.(PublicError); ok {
 		d.AlertError(pErr.Public())
 	} else {
+		fmt.Println(err)
 		d.AlertError(AlertMsgGeneric)
 	}
 }
