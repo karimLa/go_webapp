@@ -26,6 +26,9 @@ func Register(s *models.Services, wg *sync.WaitGroup, l *log.Logger) *mux.Router
 	// Serving images
 	r.PathPrefix("/images/").Handler(http.StripPrefix("/images/", http.FileServer(http.Dir("./images"))))
 
+	// Serving assets
+	r.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
+
 	baseR := r.NewRoute().Subrouter()
 	baseR.Use(ar.Middleware)
 	baseR.Use(um.Middleware)
