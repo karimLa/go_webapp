@@ -2,7 +2,7 @@ package views
 
 import (
 	"fmt"
-	"webapp/models"
+	"soramon0/webapp/models"
 )
 
 const (

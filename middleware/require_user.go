@@ -3,8 +3,8 @@ package middleware
 import (
 	"net/http"
 
-	"webapp/context"
-	"webapp/models"
+	"soramon0/webapp/context"
+	"soramon0/webapp/models"
 )
 
 type user struct {

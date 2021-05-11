@@ -3,8 +3,8 @@ package models_test
 import (
 	"testing"
 
-	"webapp/models"
-	"webapp/utils"
+	"soramon0/webapp/models"
+	"soramon0/webapp/utils"
 
 	"github.com/nicholasjackson/env"
 )

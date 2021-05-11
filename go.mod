@@ -1,4 +1,4 @@
-module webapp
+module soramon0/webapp
 
 go 1.16
 

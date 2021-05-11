@@ -7,9 +7,9 @@ import (
 	"os"
 	"strconv"
 
-	"webapp/context"
-	"webapp/models"
-	"webapp/views"
+	"soramon0/webapp/context"
+	"soramon0/webapp/models"
+	"soramon0/webapp/views"
 
 	"github.com/gorilla/mux"
 )

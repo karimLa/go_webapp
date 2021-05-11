@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"webapp/views"
+	"soramon0/webapp/views"
 )
 
 func NewStatic() *Static {
